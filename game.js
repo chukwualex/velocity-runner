@@ -268,11 +268,98 @@ function setupControls() {
     }
   });
 
-  // Click to lock
-  state.renderer.domElement.addEventListener('click', () => {
-    if (!state.controls.isLocked && state.running && !state.paused && !state.gameOver) {
-      state.controls.lock();
+  // Detect mobile (touch support)
+  state.isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+  if (state.isMobile) {
+    // Mobile: use touch-drag for camera rotation, no pointer lock
+    setupMobileCameraControls();
+    // Don't auto-lock on mobile
+    state.controls.enabled = false;
+  } else {
+    // Desktop: use PointerLockControls
+    state.renderer.domElement.addEventListener('click', () => {
+      if (!state.controls.isLocked && state.running && !state.paused && !state.gameOver) {
+        state.controls.lock();
+      }
+    });
+  }
+}
+
+function setupMobileCameraControls() {
+  const canvas = state.renderer.domElement;
+  let isDragging = false;
+  let lastTouchX = 0;
+  let lastTouchY = 0;
+
+  // Only enable camera drag on right side of screen (avoid joystick area)
+  function isInCameraZone(x) {
+    return x > window.innerWidth / 2;
+  }
+
+  canvas.addEventListener('touchstart', (e) => {
+    if (!state.running || state.paused || state.gameOver) return;
+    const touch = e.touches[0];
+    if (isInCameraZone(touch.clientX)) {
+      isDragging = true;
+      lastTouchX = touch.clientX;
+      lastTouchY = touch.clientY;
+      e.preventDefault();
     }
+  }, { passive: false });
+
+  canvas.addEventListener('touchmove', (e) => {
+    if (!isDragging || !state.running || state.paused || state.gameOver) return;
+    const touch = e.touches[0];
+    const dx = touch.clientX - lastTouchX;
+    const dy = touch.clientY - lastTouchY;
+    
+    // Rotate camera based on touch drag
+    const sensitivity = 0.003;
+    state.camera.rotation.y -= dx * sensitivity;
+    state.camera.rotation.x -= dy * sensitivity;
+    
+    // Clamp vertical rotation
+    state.camera.rotation.x = Math.max(-Math.PI / 2 + 0.1, Math.min(Math.PI / 2 - 0.1, state.camera.rotation.x));
+    
+    lastTouchX = touch.clientX;
+    lastTouchY = touch.clientY;
+    e.preventDefault();
+  }, { passive: false });
+
+  canvas.addEventListener('touchend', () => {
+    isDragging = false;
+  });
+
+  canvas.addEventListener('touchcancel', () => {
+    isDragging = false;
+  });
+
+  // Also handle mouse for mobile testing on desktop
+  canvas.addEventListener('mousedown', (e) => {
+    if (state.isMobile) return;
+    if (!state.running || state.paused || state.gameOver) return;
+    if (isInCameraZone(e.clientX)) {
+      isDragging = true;
+      lastTouchX = e.clientX;
+      lastTouchY = e.clientY;
+    }
+  });
+
+  canvas.addEventListener('mousemove', (e) => {
+    if (!isDragging || state.isMobile) return;
+    const dx = e.clientX - lastTouchX;
+    const dy = e.clientY - lastTouchY;
+    const sensitivity = 0.003;
+    state.camera.rotation.y -= dx * sensitivity;
+    state.camera.rotation.x -= dy * sensitivity;
+    state.camera.rotation.x = Math.max(-Math.PI / 2 + 0.1, Math.min(Math.PI / 2 - 0.1, state.camera.rotation.x));
+    lastTouchX = e.clientX;
+    lastTouchY = e.clientY;
+  });
+
+  canvas.addEventListener('mouseup', () => {
+    isDragging = false;
   });
 }
 
@@ -666,6 +753,9 @@ function updateGame(dt) {
   state.camera.position.z -= moveDist;
   state.sun.position.z -= moveDist;
 
+  // Lane switching input
+  updateLaneInput();
+
   // Lane switching
   updateLane(dt);
 
@@ -682,10 +772,18 @@ function updateGame(dt) {
   updateHUD();
 }
 
-function updateLane(dt) {
-  const targetX = (state.targetLane - 1) * CONFIG.laneWidth;
-  const lerpSpeed = 12;
-  state.camera.position.x += (targetX - state.camera.position.x) * lerpSpeed * dt;
+function updateLaneInput() {
+  if (state.isMobile) {
+    // Mobile: use joystick X axis
+    if (state.touchMove.active) {
+      const lane = Math.round(state.touchMove.x + 1); // -1 to 1 -> 0, 1, 2
+      state.targetLane = Math.max(0, Math.min(2, lane));
+    }
+  } else {
+    // Desktop: use A/D or Arrow keys
+    if (state.keys.left && state.targetLane > 0) state.targetLane--;
+    if (state.keys.right && state.targetLane < 2) state.targetLane++;
+  }
 }
 
 function updatePhysics(dt) {
@@ -856,7 +954,9 @@ function collectPowerup(pup) {
 function gameOver() {
   state.running = false;
   state.gameOver = true;
-  state.controls.unlock();
+  if (!state.isMobile) {
+    state.controls.unlock();
+  }
   saveBestDistance();
 
   const isNewRecord = state.distance > state.bestDistance;
@@ -904,7 +1004,9 @@ function startGame() {
   state.paused = false;
   state.gameOver = false;
   state.clock.start();
-  state.controls.lock();
+  if (!state.isMobile) {
+    state.controls.lock();
+  }
 }
 
 function resetGame() {
@@ -944,7 +1046,9 @@ function resetGame() {
 function pauseGame() {
   state.paused = true;
   state.running = false;
-  state.controls.unlock();
+  if (!state.isMobile) {
+    state.controls.unlock();
+  }
   state.elements.pauseDistance.textContent = `Distance: ${formatDistance(state.distance)}`;
   showScreen(state.elements.pauseMenu);
 }
@@ -954,7 +1058,9 @@ function resumeGame() {
   state.paused = false;
   state.running = true;
   state.clock.start();
-  state.controls.lock();
+  if (!state.isMobile) {
+    state.controls.lock();
+  }
 }
 
 function returnToMenu() {
@@ -962,7 +1068,9 @@ function returnToMenu() {
   state.running = false;
   state.paused = false;
   state.gameOver = false;
-  state.controls.unlock();
+  if (!state.isMobile) {
+    state.controls.unlock();
+  }
   resetGame();
   showStartScreen();
 }
