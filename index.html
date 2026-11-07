@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="description" content="Velocity - First-person infinite runner. Run, jump, slide through an endless procedural course.">
+  <title>Velocity | Infinite Runner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="game-container"></div>
+
+  <!-- UI Overlay -->
+  <div id="ui" class="ui-hidden">
+    <header class="hud">
+      <div class="hud-left">
+        <span class="stat">
+          <span class="stat-label">DIST</span>
+          <span class="stat-value" id="distance">0m</span>
+        </span>
+        <span class="stat">
+          <span class="stat-label">SPD</span>
+          <span class="stat-value" id="speed">0</span>
+        </span>
+        <span class="stat">
+          <span class="stat-label">BEST</span>
+          <span class="stat-value" id="best">0m</span>
+        </span>
+      </div>
+      <div class="hud-center">
+        <div class="crosshair" id="crosshair">
+          <span class="crosshair-gap"></span>
+        </div>
+      </div>
+      <div class="hud-right">
+        <button class="btn-icon" id="pause-btn" aria-label="Pause">⏸</button>
+      </div>
+    </header>
+
+    <!-- Mobile Controls -->
+    <div class="mobile-controls" id="mobile-controls">
+      <div class="touch-joystick" id="move-joystick">
+        <div class="joystick-base"></div>
+        <div class="joystick-stick"></div>
+      </div>
+      <div class="touch-buttons">
+        <button class="touch-btn" id="jump-btn" aria-label="Jump">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12v7a2 2 0 002 2h10"/><path d="M9 12v-4a4 4 0 018 0v4"/></svg>
+        </button>
+        <button class="touch-btn" id="slide-btn" aria-label="Slide">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5"/><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Start Screen -->
+  <div id="start-screen" class="screen">
+    <div class="screen-content">
+      <h1 class="game-title">VELOCITY</h1>
+      <p class="game-subtitle">Infinite First-Person Runner</p>
+      <div class="best-display" id="best-display" style="display:none">
+        <span class="best-label">BEST</span>
+        <span class="best-value" id="best-value">0m</span>
+      </div>
+      <div class="controls-hint" id="controls-hint">
+        <div class="control-row">
+          <kbd>WASD</kbd> <span>Move</span>
+        </div>
+        <div class="control-row">
+          <kbd>SPACE</kbd> <span>Jump</span>
+        </div>
+        <div class="control-row">
+          <kbd>SHIFT</kbd> <span>Slide</span>
+        </div>
+        <div class="control-row">
+          <kbd>MOUSE</kbd> <span>Look</span>
+        </div>
+        <div class="control-row">
+          <kbd>ESC</kbd> <span>Pause</span>
+        </div>
+      </div>
+      <button class="btn-primary btn-lg" id="start-btn">START RUN</button>
+      <p class="mobile-hint" id="mobile-hint">Tap to play · Touch controls enabled</p>
+    </div>
+  </div>
+
+  <!-- Pause Menu -->
+  <div id="pause-menu" class="screen hidden">
+    <div class="screen-content">
+      <h2>PAUSED</h2>
+      <p class="pause-distance" id="pause-distance">Distance: 0m</p>
+      <div class="menu-buttons">
+        <button class="btn-primary" id="resume-btn">RESUME</button>
+        <button class="btn-secondary" id="restart-btn">RESTART</button>
+        <button class="btn-secondary" id="quit-btn">MAIN MENU</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game Over Screen -->
+  <div id="gameover-screen" class="screen hidden">
+    <div class="screen-content">
+      <h2 class="gameover-title">RUN ENDED</h2>
+      <div class="final-stats">
+        <div class="final-stat">
+          <span class="final-label">DISTANCE</span>
+          <span class="final-value" id="final-distance">0m</span>
+        </div>
+        <div class="final-stat">
+          <span class="final-label">TOP SPEED</span>
+          <span class="final-value" id="final-speed">0</span>
+        </div>
+        <div class="final-stat">
+          <span class="final-label">TIME</span>
+          <span class="final-value" id="final-time">0s</span>
+        </div>
+      </div>
+      <div class="new-record" id="new-record" hidden>🏆 NEW BEST!</div>
+      <div class="menu-buttons">
+        <button class="btn-primary" id="retry-btn">RETRY</button>
+        <button class="btn-secondary" id="menu-btn">MAIN MENU</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div id="loading" class="screen">
+    <div class="loader"></div>
+    <p>Initializing course...</p>
+  </div>
+
+  <!-- Importmap for Three.js -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.164.1/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.164.1/examples/jsm/"
+    }
+  }
+  </script>
+  <script type="module" src="game.js"></script>
+</body>
+</html>
