@@ -33,9 +33,9 @@ const CONFIG = {
   powerupDensity: 0.08,
 
   // Visual
-  fogColor: 0x0a0a0f,
-  fogNear: 40,
-  fogFar: 180,
+  fogColor: 0x87ceeb,
+  fogNear: 10,
+  fogFar: 200,
   baseSpeed: 18,
   maxSpeed: 42,
   speedRampDistance: 3000,
@@ -186,23 +186,12 @@ function onResize() {
 function setupScene() {
   state.scene = new THREE.Scene();
   state.scene.fog = new THREE.Fog(CONFIG.fogColor, CONFIG.fogNear, CONFIG.fogFar);
-  state.scene.background = new THREE.Color(CONFIG.fogColor);
-
-  // Sky gradient
-  const skyGeo = new THREE.SphereGeometry(400, 32, 16);
-  const skyMat = new THREE.MeshBasicMaterial({
-    color: 0x1a1a2e,
-    side: THREE.BackSide,
-    transparent: true,
-    opacity: 0.6,
-  });
-  const sky = new THREE.Mesh(skyGeo, skyMat);
-  state.scene.add(sky);
+  state.scene.background = new THREE.Color(0x87ceeb);
 
   // Ground plane (visual only, collision handled separately)
   const groundGeo = new THREE.PlaneGeometry(2000, 2000);
   const groundMat = new THREE.MeshStandardMaterial({
-    color: 0x11111a,
+    color: 0x228b22,
     roughness: 0.9,
     metalness: 0.1,
   });
@@ -211,6 +200,10 @@ function setupScene() {
   ground.receiveShadow = true;
   state.scene.add(ground);
   state.ground = ground;
+
+  // Grid helper for debugging
+  const grid = new THREE.GridHelper(200, 50, 0xffffff, 0x888888);
+  state.scene.add(grid);
 
   // Distant buildings silhouette
   createCitySilhouette();
