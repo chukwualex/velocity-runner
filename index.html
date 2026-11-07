@@ -133,12 +133,12 @@
     <p>Initializing course...</p>
   </div>
 
-  <!-- Importmap for Three.js -->
+  <!-- Importmap for Three.js via esm.sh (more reliable) -->
   <script type="importmap">
   {
     "imports": {
-      "three": "https://unpkg.com/three@0.164.1/build/three.module.js",
-      "three/addons/": "https://unpkg.com/three@0.164.1/examples/jsm/"
+      "three": "https://esm.sh/three@0.164.1",
+      "three/addons/": "https://esm.sh/three@0.164.1/examples/jsm/"
     }
   }
   </script>
